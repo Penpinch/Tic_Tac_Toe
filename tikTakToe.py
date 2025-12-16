@@ -1,47 +1,55 @@
-class Grid:
+class Grid: # Initialize the 3x3 structure.
     def __init__(self):
-        self.row = 3
-        self.columns = 3
-
-    def gridInit(self):
-        grid_structure = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
-        return grid_structure
+        self.grid = [[0 for i in range(3)] for j in range(3)]
 
 class Coordinates:
-    def __init__(self, choose):
-        self.x = choose[0]
-        self.y = choose[1]
-        
-    def positionSelected(self):
-        self.x = int(input("X: "))
-        self.y = int(input("Y: "))
-        choose = [self.x - 1, self.y - 1]
-        return choose
+    def __init__(self, x, y):
+        self.setCoordinates(x, y)
+
+    def setCoordinates(self, x, y):
+        if not (0 <= x < 3 and 0 <= y < 3):
+            raise ValueError("Invalid coordinates. Out of range.")
+        self.x = x
+        self.y = y
+        return [self.x, self.y]
 
 class PlayerInput(Grid):
-    def __init__(self, position, logic_grid):
+    def __init__(self, position):
         super().__init__()
         self.player_x = position[0]
         self.player_y = position[1]
-        self.logic_grid = logic_grid
 
-    def playerMove(self):
-        logic_grid[self.player_x][self.player_y] = 1
-        return logic_grid
+    def chosenCell(self):
+        self.grid[self.player_x][self.player_y] = 1
+        return self.grid
 
-choose = [0, 0]
-grid = Grid()
-logic_grid = grid.gridInit()
+class Player: 
+    def __init__(self, name, mark_type):
+        self.name = name
+        self.figure_type = mark_type
 
-position = Coordinates(choose)
-position = position.positionSelected()
+class Game:
+    def __init__(self):
+        self.grid = Grid()
 
-jugada = PlayerInput(position, logic_grid)
-jugada = jugada.playerMove()
+    def getCoordinates(self):
+        print("Where to set the token: ")
+        while True:
+            try:
+                x = int(input("X: ")) - 1
+                y = int(input("Y: ")) - 1
+                position = Coordinates(x, y)
+                return position
+            except ValueError:
+                print("Invalid coordinates.")
+
+position = Game().getCoordinates()
+position = [position.x, position.y]
+
+jugada = PlayerInput(position)
+jugada = jugada.chosenCell()
 for fila in range(len(jugada)):
     for columna in range(len(jugada)):
-        print(jugada[fila][columna], end="")
+        print(jugada[fila][columna], end="\t")
         if columna >= 2:
             print(" ")
-
-#print(jugada.playerMove())
