@@ -52,6 +52,16 @@ class Winner():
         self.grid = grid
         self.player = player
 
+    def draw(self):
+        mark_counter = 0
+        for i in range(len(self.grid.grid)):
+            for j in range(len(self.grid.grid[i])):
+                if self.grid.grid[i][j] != 0:
+                    mark_counter += 1
+        if mark_counter == 9:
+            return 2
+        return 0
+
     def verifyWinner(self):
         mark_counter = 0
 
@@ -70,6 +80,7 @@ class Winner():
                     mark_counter += 1
             if mark_counter == 3:
                 return 1, self.player.name, self.player.mark
+            mark_counter = 0
 
         diagonal_1 = 0; diagonal_2 = 0
         for e in range(len(self.grid.grid)):
@@ -82,12 +93,19 @@ class Winner():
         if diagonal_2 == 3:
             return 1, self.player.name, self.player.mark
 
+        return 0, self.player.name, self.player.mark
+
 class Game:
     def __init__(self):
         self.grid = Grid()
 
     def playerTurn(self, player: Player): # player: Player para que detecte el .name y .mark
         print(f"{player.name} turn. ({player.mark})")
+        winner_instance = Winner(self.grid, player)
+        draw_result = winner_instance.draw()
+        if draw_result == 2:
+            print("Draw!")
+            return False
         while True:
             try:
                 coord = InputCoordinates()
@@ -105,12 +123,14 @@ class Game:
 
         self.grid.showCell()
 
-        winner_instance = Winner(self.grid, player)
         winner_result, player.name, player.mark = winner_instance.verifyWinner()
         if winner_result == 1:
-            print(f"The winner is {self.name} ({self.mark})")
-            return True
-        return False
+            print(f"The winner is {player.name} ({player.mark})")
+            return False
+        elif winner_result == 2:
+            print("Draw!")
+            return False
+        return True
 
 # testing
 player_1 = Player("Armando", 1)
@@ -119,11 +139,13 @@ game = Game()
 turn = 0
 
 def Prueba(game: Game, turn, player_1, player_2):
-    while True:
+    game_can_continue = True
+    
+    while game_can_continue == True:
         if turn % 2 == 0:
-            game.playerTurn(player_1)
+            game_can_continue = game.playerTurn(player_1)
         else:
-            game.playerTurn(player_2)
+            game_can_continue = game.playerTurn(player_2)
         turn += 1
 
 Prueba(game, turn, player_1, player_2)
