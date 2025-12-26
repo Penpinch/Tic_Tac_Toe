@@ -1,3 +1,11 @@
+from panda3d.core import TextNode
+from panda3d.core import loadPrcFileData
+from panda3d.core import LineSegs
+from direct.showbase.ShowBase import ShowBase
+
+loadPrcFileData("", "win-size 1000 1000")
+loadPrcFileData("", "window-title Tic Tac Toe")
+
 class Grid: # Initialize the 3x3 structure.
     def __init__(self):
         self.grid = [[0 for i in range(3)] for j in range(3)]
@@ -112,7 +120,7 @@ class Game:
                 coord = coord.getCoordinates()
                 coords = Coordinates(coord)
                 coords = coords.coordinates
-                
+
                 if self.grid.isFreeCell(coords) == True:
                     self.grid.chosenCell(coords, player.mark)
                     break
@@ -127,20 +135,17 @@ class Game:
         if winner_result == 1:
             print(f"The winner is {player.name} ({player.mark})")
             return False
-        elif winner_result == 2:
-            print("Draw!")
-            return False
         return True
 
 # testing
-player_1 = Player("Armando", 1)
+"""player_1 = Player("Armando", 1)
 player_2 = Player("Juan", 2)
 game = Game()
-turn = 0
+turn = 0"""
 
-def Prueba(game: Game, turn, player_1, player_2):
+"""def Prueba(game: Game, turn, player_1, player_2):
     game_can_continue = True
-    
+
     while game_can_continue == True:
         if turn % 2 == 0:
             game_can_continue = game.playerTurn(player_1)
@@ -148,4 +153,71 @@ def Prueba(game: Game, turn, player_1, player_2):
             game_can_continue = game.playerTurn(player_2)
         turn += 1
 
-Prueba(game, turn, player_1, player_2)
+Prueba(game, turn, player_1, player_2)"""
+
+class Line3D:
+    def __init__(self, parent):
+        self.line = LineSegs()
+        self.line.setThickness(12)
+        self.parent = parent
+
+    def addLine(self, start, end, color = (1, 1, 1, 1), z = 0):
+        self.line.setColor(*color)
+        self.line.moveTo(start[0], start[1], z)
+        self.line.drawTo(end[0], end[1], z)
+
+    def build(self):
+        return self.parent.attachNewNode(self.line.create())
+
+class CreateText:
+    def __init__(self, parent):
+        self.parent = parent
+
+    def create_text(self, content, pos, scale = 0.07):
+        text = TextNode("text node")
+        text.setText(content)
+        np = self.parent.attachNewNode(text)
+        np.setScale(scale)
+        np.setPos(pos[0], 0, pos[1])
+        return np
+
+class MyApp(ShowBase):
+    def __init__(self):
+        ShowBase.__init__(self)
+        self.disableMouse()
+        self.camera.setPos(0, 0, -10)
+        self.camera.lookAt(0, 0, 0)
+
+        """ X:  -3.6  →  +3.6
+            Y:  -2.7  →  +2.7"""
+        lines = Line3D(self.render)
+
+        lines.addLine((-1.5, 0), (1.5, 0), (0, 0, 0, 1), z = 0) # x1
+        lines.addLine((-1.5, 1.3), (1.5, 1.3), (0, 0, 0, 1), z = 0) # x2
+        lines.addLine((-0.65, -0.85), (-0.65, 2.15), (0, 0, 0, 1), z = 0) # y1
+        lines.addLine((0.65, -0.85), (0.65, 2.15), (0, 0, 0, 1), z = 0) # y2
+        self.line_np = lines.build()
+
+        self.game = Game()
+        self.player1 = Player("Luis", 1)
+        self.player2 = Player("Mario", 2)
+
+        text = CreateText(self.aspect2d)
+        name_one = text.create_text(self.player1.name, (-0.50, 0.75), 0.07)
+        name_two = text.create_text(self.player2.name, (0.50, 0.75), 0.07)
+
+
+        #self.taskMgr.add(self.gameLoop, "GameLoop")
+
+    def gameLoop(self, task):
+        game_can_continue = True
+        turn = 0
+        while game_can_continue == True:
+            if turn % 2 == 0:
+                game_can_continue = self.game.playerTurn(self.player1)
+            else:
+                game_can_continue = self.game.playerTurn(self.player2)
+            turn += 1
+
+app = MyApp()
+app.run()
