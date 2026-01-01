@@ -1,6 +1,8 @@
 from panda3d.core import TextNode
 from panda3d.core import loadPrcFileData
 from panda3d.core import LineSegs
+from direct.gui.DirectGui import DirectButton
+from direct.gui import DirectGuiGlobals
 from direct.showbase.ShowBase import ShowBase
 
 loadPrcFileData("", "win-size 1000 1000")
@@ -203,11 +205,106 @@ class MyApp(ShowBase):
         self.player2 = Player("Mario", 2)
 
         text = CreateText(self.aspect2d)
-        name_one = text.create_text(self.player1.name, (-0.50, 0.75), 0.07)
-        name_two = text.create_text(self.player2.name, (0.50, 0.75), 0.07)
+        self.name_one = text.create_text(self.player1.name, (-0.50, 0.75), 0.07)
+        self.name_two = text.create_text(self.player2.name, (0.50, 0.75), 0.07)
+
+        self.button1 = DirectButton( # top left corner
+            scale = (1.521, 0.01, 1.521), pos = (-0.405, 0, 0.163), frameColor = (0, 0, 0, 0), 
+            command = lambda: self.deactivateButton(self.button1))
+
+        self.button2 = DirectButton( # bottom left corner
+            scale = (1.521, 0.01, 1.521), pos = (-0.405, 0, -0.65), frameColor = (0, 0, 0, 0), 
+            command = lambda: self.deactivateButton(self.button2))
+
+        self.button3 = DirectButton( # top right corner
+            scale = (1.521, 0.01, 1.521), pos = (0.405, 0, 0.163), frameColor = (0, 0, 0, 0), 
+            command = lambda: self.deactivateButton(self.button3))
+
+        self.button4 = DirectButton( # bottom right corner
+            scale = (1.521, 0.01, 1.521), pos = (0.405, 0, -0.65), frameColor = (0, 0, 0, 0), 
+            command = lambda: self.deactivateButton(self.button4))
+
+        self.button5 = DirectButton( #  top corner
+            scale = (2.3, 0.01, 1.521), pos = (0, 0, 0.163), frameColor = (0, 0, 0, 0), 
+            command = lambda: self.deactivateButton(self.button5))
+        
+        self.button6 = DirectButton( #  bottom corner
+            scale = (2.3, 0.01, 1.521), pos = (0, 0, -0.65), frameColor = (0, 0, 0, 0), 
+            command = lambda: self.deactivateButton(self.button6))
+        
+        self.button7 = DirectButton( # left corner
+            scale = (1.521, 0.01, 2.3), pos = (-0.405, 0, -0.245), frameColor = (0, 0, 0, 0), 
+            command = lambda: self.deactivateButton(self.button7))
+        
+        self.button8 = DirectButton( # right corner
+            scale = (1.521, 0.01, 2.3), pos = (0.405, 0, -0.245), frameColor = (0, 0, 0, 0), 
+            command = lambda: self.deactivateButton(self.button8))
+        
+        self.button9 = DirectButton( # right corner
+            scale = (2.3, 0.01, 2.3), pos = (0, 0, -0.245), frameColor = (0, 0, 0, 0), 
+            command = lambda: self.deactivateButton(self.button9))
+        
+        """self.button1 = DirectCheckButton( # top left corner
+            scale = (0.3, 0.01, 0.26), pos = (-0.28, 0, 0.17), 
+            command = lambda: self.deactivateButton(self.button1))
+
+        self.button2 = DirectCheckButton( # bottom left corner
+            scale = (0.3, 0.01, 0.26), pos = (-0.28, 0, -0.66), 
+            command = lambda: self.deactivateButton(self.button2))
+
+        self.button3 = DirectCheckButton( # top right corner
+            scale = (0.3, 0.01, 0.26), pos = (0.54, 0, 0.17), 
+            command = lambda: self.deactivateButton(self.button3))
+
+        self.button4 = DirectCheckButton( # bottom right corner 
+            scale = (0.3, 0.01, 0.26), pos = (0.54, 0, -0.66), 
+            command = lambda: self.deactivateButton(self.button4))
+
+        self.button5 = DirectCheckButton( # top center 
+            scale = (0.44, 0.01, 0.26), pos = (0.19, 0, 0.17), 
+            command = lambda: self.deactivateButton(self.button5))
+
+        self.button6 = DirectCheckButton( # bottom center
+            scale = (0.44, 0.01, 0.26), pos = (0.19, 0, -0.66), 
+            command = lambda: self.deactivateButton(self.button6))
+
+        self.button7 = DirectCheckButton( # left center 
+            scale = (0.3, 0.01, 0.38), pos = (-0.28, 0, -0.24), 
+            command = lambda: self.deactivateButton(self.button7))
+
+        self.button8 = DirectCheckButton( # right center
+            scale = (0.3, 0.01, 0.38), pos = (0.54, 0, -0.24), 
+            command = lambda: self.deactivateButton(self.button8))
+
+        self.button9 = DirectCheckButton( # center
+            scale = (0.44, 0.01, 0.38), pos = (0.19, 0, -0.24), 
+            command = lambda: self.deactivateButton(self.button9))"""
+
+        self.buttons = [
+            self.button1, self.button2, self.button3, 
+            self.button4, self.button5, self.button6, 
+            self.button7, self.button8, self.button9]
+        
+        """for btn in self.buttons:
+            btn.hide()"""
 
 
         #self.taskMgr.add(self.gameLoop, "GameLoop")
+
+    def deactivateButton(self, button):
+        for btn in self.buttons:
+            if btn == button:
+                # --- DirectButton text states = (text, text_pressed, text_rollover, text_disabled) ---
+                button["state"] = "disabled"
+                button.show()
+
+                button["text"] = 'A'
+                button["text_scale"] = 0.1
+                button["text_align"] = TextNode.ACenter
+                button["text_pos"] = (0, 0)
+                button["text_fg"] = (1, 0, 0, 1)
+                button["text_shadow"] = (0, 0, 0, 1)
+                button["relief"] = DirectGuiGlobals.FLAT #DGG.RAISED, DGG.SUNKEN
 
     def gameLoop(self, task):
         game_can_continue = True
