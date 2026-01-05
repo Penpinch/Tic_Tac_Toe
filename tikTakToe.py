@@ -1,7 +1,7 @@
 from panda3d.core import TextNode
 from panda3d.core import loadPrcFileData
 from panda3d.core import LineSegs
-from direct.gui.DirectGui import DirectButton
+from direct.gui.DirectGui import DirectButton, DirectEntry
 from direct.gui import DirectGuiGlobals
 from direct.showbase.ShowBase import ShowBase
 
@@ -12,15 +12,15 @@ class Grid: # Initialize the 3x3 structure.
     def __init__(self):
         self.grid = [[0 for i in range(3)] for j in range(3)]
 
-    def isFreeCell(self, coordinates: tuple): 
+    def isFreeCell(self, coordinates: tuple): # Checks if a cell is already ocupped. 
         x, y = coordinates
         return (True if self.grid[x][y] == 0 else False)
 
-    def chosenCell(self, coordinates: tuple, mark):
+    def chosenCell(self, coordinates: tuple, mark): # Set the mark on the cell.
         x, y = coordinates
         self.grid[x][y] = mark
 
-    def showCell(self):
+    def showCell(self): #eliminate
         for fila in range(3):
             for columna in range(3):
                 print(self.grid[fila][columna], end="\t")
@@ -37,7 +37,7 @@ class Winner():
         self.grid = grid
         self.player = player
 
-    def draw(self):
+    def draw(self): # Draw case.
         mark_counter = 0
         for i in range(len(self.grid.grid)):
             for j in range(len(self.grid.grid[i])):
@@ -47,7 +47,7 @@ class Winner():
             return 2
         return 0
 
-    def verifyWinner(self):
+    def verifyWinner(self): # Check for every win case.
         mark_counter = 0
 
         for a in range(len(self.grid.grid)):
@@ -98,76 +98,111 @@ class CreateText:
     def __init__(self, parent):
         self.parent = parent
 
-    def create_text(self, content, pos, scale = 0.07):
+    def create_text(self, content, pos, color, scale = 0.07):
         text = TextNode("text node")
         text.setText(content)
-        np = self.parent.attachNewNode(text)
-        np.setScale(scale)
-        np.setPos(pos[0], 0, pos[1])
-        return np
+        nodepath = self.parent.attachNewNode(text)
+        nodepath.setColor(*color)
+        nodepath.setScale(scale)
+        nodepath.setPos(pos[0], 0, pos[1])
+        return nodepath
 
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
+        self.setBackgroundColor(0.5, 0, 0.7) # 0 - 1
         self.disableMouse()
         self.camera.setPos(0, 0, -10)
         self.camera.lookAt(0, 0, 0)
 
-        #   X:  -3.6  →  +3.6
-        #   Y:  -2.7  →  +2.7
-        lines = Line3D(self.render)
+        self.player1 = Player("", 1)
+        self.player2 = Player("", 2)
+        self.current_player = self.player1
 
-        lines.addLine((-1.5, 0), (1.5, 0), (0, 0, 0, 1), z = 0) # x1
-        lines.addLine((-1.5, 1.3), (1.5, 1.3), (0, 0, 0, 1), z = 0) # x2
-        lines.addLine((-0.65, -0.85), (-0.65, 2.15), (0, 0, 0, 1), z = 0) # y1
-        lines.addLine((0.65, -0.85), (0.65, 2.15), (0, 0, 0, 1), z = 0) # y2
-        self.line_np = lines.build()
+        def clear_placeholder1():
+            if self.text_entry1.get() == "Player one":
+                self.text_entry1.enterText("")
+
+        def clear_placeholder2():
+            if self.text_entry2.get() == "Player two":
+                self.text_entry2.enterText("")
+
+        self.text_entry1 = DirectEntry(
+            initialText = "Player one", 
+            scale = 0.05, 
+            pos = (-0.60, 0, 0.85), 
+            numLines = 1, 
+            focus = 0, 
+            focusInCommand = clear_placeholder1,
+            command = self.SetPlayer1
+            )
+
+        self.text_entry2 = DirectEntry(
+            initialText = "Player two", 
+            scale = 0.05, 
+            pos = (0.15, 0, 0.85), 
+            numLines = 1, 
+            focus = 0, 
+            focusInCommand = clear_placeholder2,
+            command = self.SetPlayer2
+        )
+
+        #   X:  -3.6  →  +3.6    #   Y:  -2.7  →  +2.7
+        lines = Line3D(self.render) # NodePath for 3D lines.
+
+        lines.addLine((-1.5, 0), (1.5, 0), (0, 0, 0, 1), z = 0)           # x up
+        lines.addLine((-1.5, 1.3), (1.5, 1.3), (0, 0, 0, 1), z = 0)       # x down
+        lines.addLine((-0.65, -0.85), (-0.65, 2.15), (0, 0, 0, 1), z = 0) # y left
+        lines.addLine((0.65, -0.85), (0.65, 2.15), (0, 0, 0, 1), z = 0)   # y right
+        self.line_node_path = lines.build() # NodePath for lines.
+        self.line_node_path.hide()
 
         self.grid = Grid()
         self.turn = 0
-        self.player1 = Player("Luis", 1)
-        self.player2 = Player("Mario", 2)
-        self.current_player = self.player1
 
-        text = CreateText(self.aspect2d)
-        self.name_one = text.create_text(self.player1.name, (-0.50, 0.75), 0.07)
-        self.name_two = text.create_text(self.player2.name, (0.50, 0.75), 0.07)
+        text = CreateText(self.aspect2d) # NodePath for texts.
+        self.name_one = text.create_text(self.player1.name, (-0.50, 0.75), (0, 0, 0, 1), 0.07)
+        self.name_two = text.create_text(self.player2.name, (0.50, 0.75), (0, 0, 0, 1), 0.07)
+
+        self.buttons_container = self.aspect2d.attachNewNode("Grid") # NodePath for buttons.
 
         self.button1 = DirectButton( # top left corner
             scale = (1.521, 0.01, 1.521), pos = (-0.405, 0, 0.163), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button1))
+            command = lambda: self.setMark(self.button1), parent = self.buttons_container)
 
         self.button2 = DirectButton( #  top center
             scale = (2.3, 0.01, 1.521), pos = (0, 0, 0.163), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button2))
+            command = lambda: self.setMark(self.button2), parent = self.buttons_container)
 
         self.button3 = DirectButton( # top right corner
             scale = (1.521, 0.01, 1.521), pos = (0.405, 0, 0.163), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button3))
+            command = lambda: self.setMark(self.button3), parent = self.buttons_container)
 
         self.button4 = DirectButton( # left center
             scale = (1.521, 0.01, 2.3), pos = (-0.405, 0, -0.245), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button4))
+            command = lambda: self.setMark(self.button4), parent = self.buttons_container)
 
         self.button5 = DirectButton( # center
             scale = (2.3, 0.01, 2.3), pos = (0, 0, -0.245), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button5))
+            command = lambda: self.setMark(self.button5), parent = self.buttons_container)
 
         self.button6 = DirectButton( # right center
             scale = (1.521, 0.01, 2.3), pos = (0.405, 0, -0.245), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button6))
+            command = lambda: self.setMark(self.button6), parent = self.buttons_container)
 
         self.button7 = DirectButton( # bottom left corner
             scale = (1.521, 0.01, 1.521), pos = (-0.405, 0, -0.65), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button7))
+            command = lambda: self.setMark(self.button7), parent = self.buttons_container)
 
         self.button8 = DirectButton( #  bottom center
             scale = (2.3, 0.01, 1.521), pos = (0, 0, -0.65), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button8))
+            command = lambda: self.setMark(self.button8), parent = self.buttons_container)
 
         self.button9 = DirectButton( # bottom right corner
             scale = (1.521, 0.01, 1.521), pos = (0.405, 0, -0.65), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button9))
+            command = lambda: self.setMark(self.button9), parent = self.buttons_container)
+
+        self.buttons_container.hide()
 
         self.button_to_coordinates = {
             self.button1 : (0, 0), self.button2 : (0, 1), self.button3 : (0, 2), 
@@ -199,14 +234,12 @@ class MyApp(ShowBase):
 
             if win_result == 1:
                 print(f"The winner is {winner_player} ({winner_mark})")
-                for btn in [self.button1, self.button2, self.button3, self.button4, self.button5, self.button6, self.button7, self.button8, self.button9]:
-                    btn["state"] = "disabled"
-                    return
+                self.disableAllButtons()
+                return
             elif winner_instance.draw() == 2:
                 print("Draw!")
-                for btn in [self.button1, self.button2, self.button3, self.button4, self.button5, self.button6, self.button7, self.button8, self.button9]:
-                    btn["state"] = "disabled"
-                    return
+                self.disableAllButtons()
+                return
             else:
                 self.turn += 1
                 if self.turn % 2 == 0:
@@ -216,6 +249,31 @@ class MyApp(ShowBase):
                 print(f"{self.current_player.name} turn.")
         except ValueError:
             print("Invalid coordinates.")
+
+    def disableAllButtons(self):
+        for btn in self.button_to_coordinates.keys():
+            btn["state"] = "disabled"
+
+    def SetPlayer1(self, text):
+        if text.strip() == "":
+            text = "Player one"
+        self.player1 = Player(text, 1)
+        self.current_player = self.player1
+        self.text_entry1.destroy()
+        self.name_one.node().setText(text)
+
+    def SetPlayer2(self, text):
+        if text.strip() == "":
+            text = "Player two"
+        self.player2 = Player(text, 2)
+        self.text_entry2.destroy()
+        self.name_two.node().setText(text)
+
+        self.line_node_path.show()     # move this
+        self.buttons_container.show()  # move this
+
+
+
 
 app = MyApp()
 app.run()
