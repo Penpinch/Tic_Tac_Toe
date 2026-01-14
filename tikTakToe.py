@@ -1,8 +1,8 @@
 from panda3d.core import TextNode
 from panda3d.core import loadPrcFileData
 from panda3d.core import LineSegs
-from direct.gui.DirectGui import DirectButton, DirectEntry
-from direct.gui import DirectGuiGlobals
+from direct.gui.DirectGui import DirectButton, DirectEntry, DirectLabel, DirectFrame
+#from direct.gui import DirectGuiGlobals
 from direct.showbase.ShowBase import ShowBase
 
 loadPrcFileData("", "win-size 1000 1000")
@@ -98,9 +98,10 @@ class CreateText:
     def __init__(self, parent):
         self.parent = parent
 
-    def create_text(self, content, pos, color, scale = 0.07):
+    def create_text(self, content, pos, color, scale):
         text = TextNode("text node")
         text.setText(content)
+        text.setAlign(TextNode.ACenter)
         nodepath = self.parent.attachNewNode(text)
         nodepath.setColor(*color)
         nodepath.setScale(scale)
@@ -118,6 +119,7 @@ class MyApp(ShowBase):
         self.player1 = Player("", 1)
         self.player2 = Player("", 2)
         self.current_player = self.player1
+        self.names_done = 0
 
         def clear_placeholder1():
             if self.text_entry1.get() == "Player one":
@@ -149,7 +151,6 @@ class MyApp(ShowBase):
 
         #   X:  -3.6  →  +3.6    #   Y:  -2.7  →  +2.7
         lines = Line3D(self.render) # NodePath for 3D lines.
-
         lines.addLine((-1.5, 0), (1.5, 0), (0, 0, 0, 1), z = 0)           # x up
         lines.addLine((-1.5, 1.3), (1.5, 1.3), (0, 0, 0, 1), z = 0)       # x down
         lines.addLine((-0.65, -0.85), (-0.65, 2.15), (0, 0, 0, 1), z = 0) # y left
@@ -163,6 +164,10 @@ class MyApp(ShowBase):
         text = CreateText(self.aspect2d) # NodePath for texts.
         self.name_one = text.create_text(self.player1.name, (-0.50, 0.75), (0, 0, 0, 1), 0.07)
         self.name_two = text.create_text(self.player2.name, (0.50, 0.75), (0, 0, 0, 1), 0.07)
+
+        self.label_p1 = self.createLabel(self.player1.name, (-0.50, 0.75))
+        self.label_p2 = self.createLabel(self.player2.name, (0.50, 0.75))
+        self.label_p1.hide(); self.label_p2.hide()
 
         self.buttons_container = self.aspect2d.attachNewNode("Grid") # NodePath for buttons.
 
@@ -233,18 +238,22 @@ class MyApp(ShowBase):
             win_result, winner_player, winner_mark = winner_instance.verifyWinner()
 
             if win_result == 1:
-                print(f"The winner is {winner_player} ({winner_mark})")
+                self.endGameScreen(winner_player)
                 self.disableAllButtons()
                 return
             elif winner_instance.draw() == 2:
-                print("Draw!")
+                self.endGameScreen("draw")
                 self.disableAllButtons()
                 return
             else:
                 self.turn += 1
                 if self.turn % 2 == 0:
+                    self.label_p2.hide(); self.name_two.show()
+                    self.label_p1.show(); self.name_one.hide()
                     self.current_player = self.player1
                 else:
+                    self.label_p1.hide(); self.name_one.show()
+                    self.label_p2.show(); self.name_two.hide()
                     self.current_player = self.player2
                 print(f"{self.current_player.name} turn.")
         except ValueError:
@@ -258,22 +267,67 @@ class MyApp(ShowBase):
         if text.strip() == "":
             text = "Player one"
         self.player1 = Player(text, 1)
+        self.label_p1["text"] = text
+        bounds_p1 = self.label_p1.getBounds()
+        left_p1, right_p1, bottom_p1, top_p1 = bounds_p1
+        padding = 0.1
+        self.label_p1["frameSize"] = (
+            left_p1 - padding, right_p1 + padding, 
+            bottom_p1 - padding, top_p1 + padding
+        )
         self.current_player = self.player1
         self.text_entry1.destroy()
         self.name_one.node().setText(text)
+        self.names_done += 1
+        self.showBoard()
 
     def SetPlayer2(self, text):
         if text.strip() == "":
             text = "Player two"
         self.player2 = Player(text, 2)
+        self.label_p2["text"] = text
+        bounds_p2 = self.label_p2.getBounds()
+        left_p2, right_p2, bottom_p2, top_p2 = bounds_p2
+        padding = 0.1
+        self.label_p2["frameSize"] = (
+            left_p2 - padding, right_p2 + padding, 
+            bottom_p2 - padding, top_p2 + padding
+        )
         self.text_entry2.destroy()
         self.name_two.node().setText(text)
+        self.names_done += 1
+        self.showBoard()
 
-        self.line_node_path.show()     # move this
-        self.buttons_container.show()  # move this
+    def endGameScreen(self, text):
+        self.buttons_container.hide()
+        self.name_one.hide()
+        self.name_two.hide()
+        self.label_p1.hide()
+        self.label_p2.hide()
+        self.line_node_path.hide()
 
+        end_text_node = CreateText(self.aspect2d)
+        if (text == "draw"):
+            end_text_node.create_text("Draw!!!", (0, 0), (1, 0, 0, 1), 0.1)
+        else:
+            end_text = "The winner is {}!!!".format(text)
+            end_text_node.create_text(end_text, (0,0), (1, 0, 0, 1), 0.1)
 
+    def showBoard(self):
+        if self.names_done == 2:
+            self.line_node_path.show()
+            self.buttons_container.show()
+            self.label_p1.show()
 
+    def createLabel(self, text, pos):
+        return DirectLabel(
+        text = text, 
+        text_align = TextNode.ALeft,
+        pos = (pos[0], 0, pos[1]), 
+        frameColor = (1, 0, 0, 1),
+        frameSize = None,
+        scale = 0.07
+        )
 
 app = MyApp()
 app.run()
