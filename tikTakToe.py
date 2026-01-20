@@ -12,15 +12,15 @@ class Grid: # Initialize the 3x3 structure.
     def __init__(self):
         self.grid = [[0 for i in range(3)] for j in range(3)]
 
-    def isFreeCell(self, coordinates: tuple): # Checks if a cell is already ocupped. 
+    def is_free_cell(self, coordinates: tuple): # Checks if a cell is already ocupped. 
         x, y = coordinates
         return (True if self.grid[x][y] == 0 else False)
 
-    def chosenCell(self, coordinates: tuple, mark): # Set the mark on the cell.
+    def chosen_cell(self, coordinates: tuple, mark): # Set the mark on the cell.
         x, y = coordinates
         self.grid[x][y] = mark
 
-    def showCell(self): #eliminate
+    def show_cell(self): #eliminate
         for fila in range(3):
             for columna in range(3):
                 print(self.grid[fila][columna], end="\t")
@@ -47,7 +47,7 @@ class Winner():
             return 2
         return 0
 
-    def verifyWinner(self): # Check for every win case.
+    def verify_winner(self): # Check for every win case.
         mark_counter = 0
 
         for a in range(len(self.grid.grid)):
@@ -86,7 +86,7 @@ class Line3D:
         self.line.setThickness(12)
         self.parent = parent
 
-    def addLine(self, start, end, color = (1, 1, 1, 1), z = 0):
+    def add_line(self, start, end, color = (1, 1, 1, 1), z = 0):
         self.line.setColor(*color)
         self.line.moveTo(start[0], start[1], z)
         self.line.drawTo(end[0], end[1], z)
@@ -116,96 +116,52 @@ class MyApp(ShowBase):
         self.camera.setPos(0, 0, -10)
         self.camera.lookAt(0, 0, 0)
 
-        self.player1 = Player("", 1)
-        self.player2 = Player("", 2)
-        self.current_player = self.player1
-        self.names_done = 0
-
-        def clear_placeholder1():
-            if self.text_entry1.get() == "Player one":
-                self.text_entry1.enterText("")
-
-        def clear_placeholder2():
-            if self.text_entry2.get() == "Player two":
-                self.text_entry2.enterText("")
-
-        self.text_entry1 = DirectEntry(
-            initialText = "Player one", 
-            scale = 0.05, 
-            pos = (-0.60, 0, 0.85), 
-            numLines = 1, 
-            focus = 0, 
-            focusInCommand = clear_placeholder1,
-            command = self.SetPlayer1
-            )
-
-        self.text_entry2 = DirectEntry(
-            initialText = "Player two", 
-            scale = 0.05, 
-            pos = (0.15, 0, 0.85), 
-            numLines = 1, 
-            focus = 0, 
-            focusInCommand = clear_placeholder2,
-            command = self.SetPlayer2
-        )
-
         #   X:  -3.6  →  +3.6    #   Y:  -2.7  →  +2.7
         lines = Line3D(self.render) # NodePath for 3D lines.
-        lines.addLine((-1.5, 0), (1.5, 0), (0, 0, 0, 1), z = 0)           # x up
-        lines.addLine((-1.5, 1.3), (1.5, 1.3), (0, 0, 0, 1), z = 0)       # x down
-        lines.addLine((-0.65, -0.85), (-0.65, 2.15), (0, 0, 0, 1), z = 0) # y left
-        lines.addLine((0.65, -0.85), (0.65, 2.15), (0, 0, 0, 1), z = 0)   # y right
+        lines.add_line((-1.5, 0), (1.5, 0), (0, 0, 0, 1), z = 0)           # x up
+        lines.add_line((-1.5, 1.3), (1.5, 1.3), (0, 0, 0, 1), z = 0)       # x down
+        lines.add_line((-0.65, -0.85), (-0.65, 2.15), (0, 0, 0, 1), z = 0) # y left
+        lines.add_line((0.65, -0.85), (0.65, 2.15), (0, 0, 0, 1), z = 0)   # y right
         self.line_node_path = lines.build() # NodePath for lines.
         self.line_node_path.hide()
-
-        self.grid = Grid()
-        self.turn = 0
-
-        text = CreateText(self.aspect2d) # NodePath for texts.
-        self.name_one = text.create_text(self.player1.name, (-0.50, 0.75), (0, 0, 0, 1), 0.07)
-        self.name_two = text.create_text(self.player2.name, (0.50, 0.75), (0, 0, 0, 1), 0.07)
-
-        self.label_p1 = self.createLabel(self.player1.name, (-0.50, 0.75))
-        self.label_p2 = self.createLabel(self.player2.name, (0.50, 0.75))
-        self.label_p1.hide(); self.label_p2.hide()
 
         self.buttons_container = self.aspect2d.attachNewNode("Grid") # NodePath for buttons.
 
         self.button1 = DirectButton( # top left corner
             scale = (1.521, 0.01, 1.521), pos = (-0.405, 0, 0.163), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button1), parent = self.buttons_container)
+            command = lambda: self.set_mark(self.button1), parent = self.buttons_container)
 
         self.button2 = DirectButton( #  top center
             scale = (2.3, 0.01, 1.521), pos = (0, 0, 0.163), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button2), parent = self.buttons_container)
+            command = lambda: self.set_mark(self.button2), parent = self.buttons_container)
 
         self.button3 = DirectButton( # top right corner
             scale = (1.521, 0.01, 1.521), pos = (0.405, 0, 0.163), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button3), parent = self.buttons_container)
+            command = lambda: self.set_mark(self.button3), parent = self.buttons_container)
 
         self.button4 = DirectButton( # left center
             scale = (1.521, 0.01, 2.3), pos = (-0.405, 0, -0.245), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button4), parent = self.buttons_container)
+            command = lambda: self.set_mark(self.button4), parent = self.buttons_container)
 
         self.button5 = DirectButton( # center
             scale = (2.3, 0.01, 2.3), pos = (0, 0, -0.245), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button5), parent = self.buttons_container)
+            command = lambda: self.set_mark(self.button5), parent = self.buttons_container)
 
         self.button6 = DirectButton( # right center
             scale = (1.521, 0.01, 2.3), pos = (0.405, 0, -0.245), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button6), parent = self.buttons_container)
+            command = lambda: self.set_mark(self.button6), parent = self.buttons_container)
 
         self.button7 = DirectButton( # bottom left corner
             scale = (1.521, 0.01, 1.521), pos = (-0.405, 0, -0.65), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button7), parent = self.buttons_container)
+            command = lambda: self.set_mark(self.button7), parent = self.buttons_container)
 
         self.button8 = DirectButton( #  bottom center
             scale = (2.3, 0.01, 1.521), pos = (0, 0, -0.65), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button8), parent = self.buttons_container)
+            command = lambda: self.set_mark(self.button8), parent = self.buttons_container)
 
         self.button9 = DirectButton( # bottom right corner
             scale = (1.521, 0.01, 1.521), pos = (0.405, 0, -0.65), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.setMark(self.button9), parent = self.buttons_container)
+            command = lambda: self.set_mark(self.button9), parent = self.buttons_container)
 
         self.buttons_container.hide()
 
@@ -215,12 +171,14 @@ class MyApp(ShowBase):
             self.button7 : (2, 0), self.button8 : (2, 1), self.button9 : (2, 2),
         }
 
-    def setMark(self, button):
+        self.start_game_screen()
+
+    def set_mark(self, button):
         try:
             btn_coords = self.button_to_coordinates[button]
 
-            if self.grid.isFreeCell(btn_coords) == True:
-                self.grid.chosenCell(btn_coords, self.current_player.mark)
+            if self.grid.is_free_cell(btn_coords) == True:
+                self.grid.chosen_cell(btn_coords, self.current_player.mark)
             else: 
                 return
 
@@ -232,18 +190,18 @@ class MyApp(ShowBase):
             button["image_scale"] = 0.1
             button.show()
 
-            self.grid.showCell()
+            self.grid.show_cell()
 
             winner_instance = Winner(self.grid, self.current_player)
-            win_result, winner_player, winner_mark = winner_instance.verifyWinner()
+            win_result, winner_player, winner_mark = winner_instance.verify_winner()
 
             if win_result == 1:
-                self.endGameScreen(winner_player)
-                self.disableAllButtons()
+                self.end_game_screen(winner_player)
+                self.disable_all_buttons()
                 return
             elif winner_instance.draw() == 2:
-                self.endGameScreen("draw")
-                self.disableAllButtons()
+                self.end_game_screen("draw")
+                self.disable_all_buttons()
                 return
             else:
                 self.turn += 1
@@ -259,11 +217,15 @@ class MyApp(ShowBase):
         except ValueError:
             print("Invalid coordinates.")
 
-    def disableAllButtons(self):
+    def disable_all_buttons(self):
         for btn in self.button_to_coordinates.keys():
             btn["state"] = "disabled"
 
-    def SetPlayer1(self, text):
+    def enable_all_buttons(self):
+        for btn in self.button_to_coordinates.keys():
+            btn["state"] = "normal"
+
+    def set_player_1(self, text):
         if text.strip() == "":
             text = "Player one"
         self.player1 = Player(text, 1)
@@ -279,9 +241,9 @@ class MyApp(ShowBase):
         self.text_entry1.destroy()
         self.name_one.node().setText(text)
         self.names_done += 1
-        self.showBoard()
+        self.show_board()
 
-    def SetPlayer2(self, text):
+    def set_player_2(self, text):
         if text.strip() == "":
             text = "Player two"
         self.player2 = Player(text, 2)
@@ -296,9 +258,59 @@ class MyApp(ShowBase):
         self.text_entry2.destroy()
         self.name_two.node().setText(text)
         self.names_done += 1
-        self.showBoard()
+        self.show_board()
 
-    def endGameScreen(self, text):
+    def start_game_screen(self):
+        self.player1 = Player("", 1)
+        self.player2 = Player("", 2)
+        self.current_player = self.player1
+        self.names_done = 0
+
+        for btn in self.button_to_coordinates.keys():
+            btn["image"] = None
+
+        self.text_entry1 = DirectEntry(
+            initialText = "Player one", 
+            scale = 0.05, 
+            pos = (-0.60, 0, 0.85), 
+            numLines = 1, 
+            focus = 0, 
+            focusInCommand = self.clear_placeholder1,
+            command = self.set_player_1
+            )
+
+        self.text_entry2 = DirectEntry(
+            initialText = "Player two", 
+            scale = 0.05, 
+            pos = (0.15, 0, 0.85), 
+            numLines = 1, 
+            focus = 0, 
+            focusInCommand = self.clear_placeholder2,
+            command = self.set_player_2
+        )
+
+        self.grid = Grid()
+        self.turn = 0
+
+        self.enable_all_buttons()
+
+        text = CreateText(self.aspect2d) # NodePath for texts.
+        self.name_one = text.create_text(self.player1.name, (-0.50, 0.75), (0, 0, 0, 1), 0.07)
+        self.name_two = text.create_text(self.player2.name, (0.50, 0.75), (0, 0, 0, 1), 0.07)
+
+        self.label_p1 = self.create_label(self.player1.name, (-0.50, 0.75))
+        self.label_p2 = self.create_label(self.player2.name, (0.50, 0.75))
+        self.label_p1.hide(); self.label_p2.hide()
+
+    def clear_placeholder1(self):
+        if self.text_entry1.get() == "Player one":
+            self.text_entry1.enterText("")
+
+    def clear_placeholder2(self):
+        if self.text_entry2.get() == "Player two":
+            self.text_entry2.enterText("")
+
+    def end_game_screen(self, text):
         self.buttons_container.hide()
         self.name_one.hide()
         self.name_two.hide()
@@ -307,22 +319,26 @@ class MyApp(ShowBase):
         self.line_node_path.hide()
 
         end_text_node = CreateText(self.aspect2d)
-        if (text == "draw"):
-            end_text_node.create_text("Draw!!!", (0, 0), (1, 0, 0, 1), 0.1)
+        if text == "draw":
+            self.end_text = end_text_node.create_text("Draw!!!", (0, 0), (1, 0, 0, 1), 0.1)
         else:
             end_text = "The winner is {}!!!".format(text)
-            end_text_node.create_text(end_text, (0,0), (1, 0, 0, 1), 0.1)
+            self.end_text = end_text_node.create_text(end_text, (0,0), (1, 0, 0, 1), 0.1)
 
-    def showBoard(self):
+        self.verif = False
+        self.accept("e", lambda: (self.__dict__.update(verif = True), self.end_text.removeNode(), self.start_game_screen()))
+
+    def show_board(self):
         if self.names_done == 2:
             self.line_node_path.show()
             self.buttons_container.show()
             self.label_p1.show()
 
-    def createLabel(self, text, pos):
+    def create_label(self, text, pos):
+        display_text = text[:15]
         return DirectLabel(
-        text = text, 
-        text_align = TextNode.ALeft,
+        text = display_text, 
+        text_align = TextNode.ACenter,
         pos = (pos[0], 0, pos[1]), 
         frameColor = (1, 0, 0, 1),
         frameSize = None,
