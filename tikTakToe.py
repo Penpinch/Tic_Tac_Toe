@@ -1,6 +1,7 @@
 from panda3d.core import TextNode
 from panda3d.core import loadPrcFileData
 from panda3d.core import LineSegs
+from panda3d.core import LColor
 from direct.gui.DirectGui import DirectButton, DirectEntry, DirectLabel, DirectFrame
 from direct.showbase.ShowBase import ShowBase
 
@@ -218,14 +219,15 @@ class MyApp(ShowBase):
 
     def loading_menu(self):
         game_tittle_node = CreateText(self.aspect2d)
-        self.game_tittle = game_tittle_node.create_text("Tic Tac Toe", (0, 0.5), (0, 0, 0, 1), 0.2)
-        self.ignore("e")
-        self.accept("s", lambda: (self.start_game_screen(), self.game_tittle.removeNode()))
+        self.game_tittle = game_tittle_node.create_text("Tic Tac Toe", (0, 0.7), (0, 0, 0, 1), 0.2)
+        self.game_mode_1 = DirectButton(
+            text = "1. Two players.", 
+            pos = (0, 0, 0.3), 
+            frameColor = (1, 0.992, 0.816, 0.5), 
+            scale = 0.09, 
+            command = lambda: (self.game_tittle.removeNode(), self.game_mode_1.destroy(), self.start_game_screen()))
 
     def start_game_screen(self):
-        self.ignore("e")
-        self.ignore("s")
-
         self.player1 = Player("", 1)
         self.player2 = Player("", 2)
         self.current_player = self.player1
@@ -263,13 +265,11 @@ class MyApp(ShowBase):
         self.name_one = text.create_text(self.player1.name, (-0.50, 0.75), (0, 0, 0, 1), 0.07)
         self.name_two = text.create_text(self.player2.name, (0.50, 0.75), (0, 0, 0, 1), 0.07)
 
-        self.label_p1 = self.create_label(self.player1.name, (-0.50, 0.75))
-        self.label_p2 = self.create_label(self.player2.name, (0.50, 0.75))
+        self.label_p1 = self.create_name_label(self.player1.name, (-0.50, 0.75))
+        self.label_p2 = self.create_name_label(self.player2.name, (0.50, 0.75))
         self.label_p1.hide(); self.label_p2.hide()
 
     def end_game_screen(self, text):
-        self.ignore("s")
-
         self.buttons_container.hide()
         self.name_one.hide()
         self.name_two.hide()
@@ -284,8 +284,12 @@ class MyApp(ShowBase):
             end_text = "The winner is {}!!!".format(text)
             self.end_text = end_text_node.create_text(end_text, (0,0), (1, 0, 0, 1), 0.1)
 
-        self.verif = False
-        self.accept("e", lambda: (self.__dict__.update(verif = True), self.end_text.removeNode(), self.loading_menu()))
+        self.return_to_menu = DirectButton(
+            text = "Menu.", 
+            pos = (0, 0, -0.8), 
+            frameColor = (1, 0.992, 0.816, 0.5), 
+            scale = 0.09, 
+            command = lambda: (self.end_text.removeNode(), self.return_to_menu.destroy(), self.loading_menu()))
 
     def clear_placeholder1(self):
         if self.text_entry1.get() == "Player one":
@@ -344,7 +348,7 @@ class MyApp(ShowBase):
             self.buttons_container.show()
             self.label_p1.show()
 
-    def create_label(self, text, pos):
+    def create_name_label(self, text, pos):
         display_text = text[:15]
         return DirectLabel(
         text = display_text, 
