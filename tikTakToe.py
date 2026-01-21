@@ -2,7 +2,6 @@ from panda3d.core import TextNode
 from panda3d.core import loadPrcFileData
 from panda3d.core import LineSegs
 from direct.gui.DirectGui import DirectButton, DirectEntry, DirectLabel, DirectFrame
-#from direct.gui import DirectGuiGlobals
 from direct.showbase.ShowBase import ShowBase
 
 loadPrcFileData("", "win-size 1000 1000")
@@ -171,7 +170,7 @@ class MyApp(ShowBase):
             self.button7 : (2, 0), self.button8 : (2, 1), self.button9 : (2, 2),
         }
 
-        self.start_game_screen()
+        self.loading_menu()
 
     def set_mark(self, button):
         try:
@@ -217,6 +216,85 @@ class MyApp(ShowBase):
         except ValueError:
             print("Invalid coordinates.")
 
+    def loading_menu(self):
+        game_tittle_node = CreateText(self.aspect2d)
+        self.game_tittle = game_tittle_node.create_text("Tic Tac Toe", (0, 0.5), (0, 0, 0, 1), 0.2)
+        self.ignore("e")
+        self.accept("s", lambda: (self.start_game_screen(), self.game_tittle.removeNode()))
+
+    def start_game_screen(self):
+        self.ignore("e")
+        self.ignore("s")
+
+        self.player1 = Player("", 1)
+        self.player2 = Player("", 2)
+        self.current_player = self.player1
+        self.names_done = 0
+
+        for btn in self.button_to_coordinates.keys():
+            btn["image"] = None
+
+        self.text_entry1 = DirectEntry(
+            initialText = "Player one", 
+            scale = 0.05, 
+            pos = (-0.60, 0, 0.85), 
+            numLines = 1, 
+            focus = 0, 
+            focusInCommand = self.clear_placeholder1,
+            command = self.set_player_1
+            )
+
+        self.text_entry2 = DirectEntry(
+            initialText = "Player two", 
+            scale = 0.05, 
+            pos = (0.15, 0, 0.85), 
+            numLines = 1, 
+            focus = 0, 
+            focusInCommand = self.clear_placeholder2,
+            command = self.set_player_2
+        )
+
+        self.grid = Grid()
+        self.turn = 0
+
+        self.enable_all_buttons()
+
+        text = CreateText(self.aspect2d) # NodePath
+        self.name_one = text.create_text(self.player1.name, (-0.50, 0.75), (0, 0, 0, 1), 0.07)
+        self.name_two = text.create_text(self.player2.name, (0.50, 0.75), (0, 0, 0, 1), 0.07)
+
+        self.label_p1 = self.create_label(self.player1.name, (-0.50, 0.75))
+        self.label_p2 = self.create_label(self.player2.name, (0.50, 0.75))
+        self.label_p1.hide(); self.label_p2.hide()
+
+    def end_game_screen(self, text):
+        self.ignore("s")
+
+        self.buttons_container.hide()
+        self.name_one.hide()
+        self.name_two.hide()
+        self.label_p1.hide()
+        self.label_p2.hide()
+        self.line_node_path.hide()
+
+        end_text_node = CreateText(self.aspect2d) # NodePath
+        if text == "draw":
+            self.end_text = end_text_node.create_text("Draw!!!", (0, 0), (1, 0, 0, 1), 0.1)
+        else:
+            end_text = "The winner is {}!!!".format(text)
+            self.end_text = end_text_node.create_text(end_text, (0,0), (1, 0, 0, 1), 0.1)
+
+        self.verif = False
+        self.accept("e", lambda: (self.__dict__.update(verif = True), self.end_text.removeNode(), self.loading_menu()))
+
+    def clear_placeholder1(self):
+        if self.text_entry1.get() == "Player one":
+            self.text_entry1.enterText("")
+
+    def clear_placeholder2(self):
+        if self.text_entry2.get() == "Player two":
+            self.text_entry2.enterText("")
+
     def disable_all_buttons(self):
         for btn in self.button_to_coordinates.keys():
             btn["state"] = "disabled"
@@ -259,74 +337,6 @@ class MyApp(ShowBase):
         self.name_two.node().setText(text)
         self.names_done += 1
         self.show_board()
-
-    def start_game_screen(self):
-        self.player1 = Player("", 1)
-        self.player2 = Player("", 2)
-        self.current_player = self.player1
-        self.names_done = 0
-
-        for btn in self.button_to_coordinates.keys():
-            btn["image"] = None
-
-        self.text_entry1 = DirectEntry(
-            initialText = "Player one", 
-            scale = 0.05, 
-            pos = (-0.60, 0, 0.85), 
-            numLines = 1, 
-            focus = 0, 
-            focusInCommand = self.clear_placeholder1,
-            command = self.set_player_1
-            )
-
-        self.text_entry2 = DirectEntry(
-            initialText = "Player two", 
-            scale = 0.05, 
-            pos = (0.15, 0, 0.85), 
-            numLines = 1, 
-            focus = 0, 
-            focusInCommand = self.clear_placeholder2,
-            command = self.set_player_2
-        )
-
-        self.grid = Grid()
-        self.turn = 0
-
-        self.enable_all_buttons()
-
-        text = CreateText(self.aspect2d) # NodePath for texts.
-        self.name_one = text.create_text(self.player1.name, (-0.50, 0.75), (0, 0, 0, 1), 0.07)
-        self.name_two = text.create_text(self.player2.name, (0.50, 0.75), (0, 0, 0, 1), 0.07)
-
-        self.label_p1 = self.create_label(self.player1.name, (-0.50, 0.75))
-        self.label_p2 = self.create_label(self.player2.name, (0.50, 0.75))
-        self.label_p1.hide(); self.label_p2.hide()
-
-    def clear_placeholder1(self):
-        if self.text_entry1.get() == "Player one":
-            self.text_entry1.enterText("")
-
-    def clear_placeholder2(self):
-        if self.text_entry2.get() == "Player two":
-            self.text_entry2.enterText("")
-
-    def end_game_screen(self, text):
-        self.buttons_container.hide()
-        self.name_one.hide()
-        self.name_two.hide()
-        self.label_p1.hide()
-        self.label_p2.hide()
-        self.line_node_path.hide()
-
-        end_text_node = CreateText(self.aspect2d)
-        if text == "draw":
-            self.end_text = end_text_node.create_text("Draw!!!", (0, 0), (1, 0, 0, 1), 0.1)
-        else:
-            end_text = "The winner is {}!!!".format(text)
-            self.end_text = end_text_node.create_text(end_text, (0,0), (1, 0, 0, 1), 0.1)
-
-        self.verif = False
-        self.accept("e", lambda: (self.__dict__.update(verif = True), self.end_text.removeNode(), self.start_game_screen()))
 
     def show_board(self):
         if self.names_done == 2:
