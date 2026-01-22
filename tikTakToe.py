@@ -2,6 +2,7 @@ from panda3d.core import TextNode
 from panda3d.core import loadPrcFileData
 from panda3d.core import LineSegs
 from panda3d.core import LColor
+from panda3d.core import CardMaker, TextureStage, TransparencyAttrib, Texture
 from direct.gui.DirectGui import DirectButton, DirectEntry, DirectLabel, DirectFrame
 from direct.showbase.ShowBase import ShowBase
 
@@ -88,8 +89,8 @@ class Line3D:
 
     def add_line(self, start, end, color = (1, 1, 1, 1), z = 0):
         self.line.setColor(*color)
-        self.line.moveTo(start[0], start[1], z)
-        self.line.drawTo(end[0], end[1], z)
+        self.line.moveTo(start[0], z, start[1])
+        self.line.drawTo(end[0], z, end[1])
 
     def build(self):
         return self.parent.attachNewNode(self.line.create())
@@ -111,18 +112,30 @@ class CreateText:
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
-        self.setBackgroundColor(0.5, 0, 0.7) # 0 - 1
+        #self.setBackgroundColor(0.5, 0, 0.7) # 0 - 1
         self.disableMouse()
         self.camera.setPos(0, 0, -10)
         self.camera.lookAt(0, 0, 0)
 
-        #   X:  -3.6  →  +3.6    #   Y:  -2.7  →  +2.7
-        lines = Line3D(self.render) # NodePath for 3D lines.
-        lines.add_line((-1.5, 0), (1.5, 0), (0, 0, 0, 1), z = 0)           # x up
-        lines.add_line((-1.5, 1.3), (1.5, 1.3), (0, 0, 0, 1), z = 0)       # x down
-        lines.add_line((-0.65, -0.85), (-0.65, 2.15), (0, 0, 0, 1), z = 0) # y left
-        lines.add_line((0.65, -0.85), (0.65, 2.15), (0, 0, 0, 1), z = 0)   # y right
-        self.line_node_path = lines.build() # NodePath for lines.
+        card_maker = CardMaker("background_card")
+        card_maker.setFrameFullscreenQuad()
+
+        self.background = self.render2d.attachNewNode(card_maker.generate())
+
+        texture_ = self.loader.loadTexture("purple_galaxy.png")
+        self.background.setTexture(texture_)
+        self.background.setTransparency(TransparencyAttrib.M_alpha)
+
+        self.background.setBin("backgornd", 0)
+        self.background.setDepthTest(False)
+        self.background.setDepthWrite(False)
+
+        lines = Line3D(self.aspect2d) # NodePath for lines.
+        lines.add_line((-0.555, -0.484), (0.555, -0.484), (0, 0, 0, 1), z = 0) # x up 
+        lines.add_line((0.555, 0), (-0.555, 0), (0, 0, 0, 1), z = 0)           # x down
+        lines.add_line((-0.240, 0.312), (-0.240, -0.798), (0, 0, 0, 1), z = 0) # y left
+        lines.add_line((0.240, 0.312), (0.240, -0.792), (0, 0, 0, 1), z = 0)   # y right
+        self.line_node_path = lines.build()
         self.line_node_path.hide()
 
         self.buttons_container = self.aspect2d.attachNewNode("Grid") # NodePath for buttons.
@@ -220,12 +233,20 @@ class MyApp(ShowBase):
     def loading_menu(self):
         game_tittle_node = CreateText(self.aspect2d)
         self.game_tittle = game_tittle_node.create_text("Tic Tac Toe", (0, 0.7), (0, 0, 0, 1), 0.2)
-        self.game_mode_1 = DirectButton(
-            text = "1. Two players.", 
+        self.game_mode_1_button = DirectButton(
+            text = "Two players", 
             pos = (0, 0, 0.3), 
             frameColor = (1, 0.992, 0.816, 0.5), 
             scale = 0.09, 
-            command = lambda: (self.game_tittle.removeNode(), self.game_mode_1.destroy(), self.start_game_screen()))
+            command = lambda: (self.game_tittle.removeNode(), self.game_mode_1_button.destroy(), 
+                            self.exit_game_button.destroy(), self.start_game_screen()))
+
+        self.exit_game_button = DirectButton(
+            text = "Salir ", 
+            pos = (0, 0, 0), 
+            frameColor = (1, 0.992, 0.816, 0.5), 
+            scale = 0.09, 
+            command = lambda: (self.userExit()))
 
     def start_game_screen(self):
         self.player1 = Player("", 1)
