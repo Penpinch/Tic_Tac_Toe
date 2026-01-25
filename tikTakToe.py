@@ -21,13 +21,6 @@ class Grid: # Initialize the 3x3 structure.
         x, y = coordinates
         self.grid[x][y] = mark
 
-    def show_cell(self): #eliminate
-        for fila in range(3):
-            for columna in range(3):
-                print(self.grid[fila][columna], end="\t")
-                if columna >= 2:
-                    print(" ")
-
 class Player: 
     def __init__(self, name, mark):
         self.name = name
@@ -109,7 +102,7 @@ class CreateText:
         nodepath.setPos(pos[0], 0, pos[1])
         return nodepath
 
-class MyApp(ShowBase):
+class Game(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
         #self.setBackgroundColor(0.5, 0, 0.7) # 0 - 1
@@ -126,7 +119,7 @@ class MyApp(ShowBase):
         self.background.setTexture(texture_)
         self.background.setTransparency(TransparencyAttrib.M_alpha)
 
-        self.background.setBin("backgornd", 0)
+        self.background.setBin("background", 0)
         self.background.setDepthTest(False)
         self.background.setDepthWrite(False)
 
@@ -184,6 +177,9 @@ class MyApp(ShowBase):
             self.button7 : (2, 0), self.button8 : (2, 1), self.button9 : (2, 2),
         }
 
+        self.bg_sqd_container = self.aspect2d.attachNewNode("frames")
+        self.background_button_frame()
+        self.bg_sqd_container.hide()
         self.loading_menu()
 
     def set_mark(self, button):
@@ -199,11 +195,10 @@ class MyApp(ShowBase):
             if self.current_player.mark == 1:
                 button["image"] = "o_sign.png"
             else:
-                button["image"] = "x_sign.jpg"
+                button["image"] = "x_sign.png"
             button["image_scale"] = 0.1
+            button.setTransparency(TransparencyAttrib.M_alpha)
             button.show()
-
-            self.grid.show_cell()
 
             winner_instance = Winner(self.grid, self.current_player)
             win_result, winner_player, winner_mark = winner_instance.verify_winner()
@@ -226,7 +221,6 @@ class MyApp(ShowBase):
                     self.label_p1.hide(); self.name_one.show()
                     self.label_p2.show(); self.name_two.hide()
                     self.current_player = self.player2
-                print(f"{self.current_player.name} turn.")
         except ValueError:
             print("Invalid coordinates.")
 
@@ -297,6 +291,7 @@ class MyApp(ShowBase):
         self.label_p1.hide()
         self.label_p2.hide()
         self.line_node_path.hide()
+        self.bg_sqd_container.hide()
 
         end_text_node = CreateText(self.aspect2d) # NodePath
         if text == "draw":
@@ -306,7 +301,7 @@ class MyApp(ShowBase):
             self.end_text = end_text_node.create_text(end_text, (0,0), (1, 0, 0, 1), 0.1)
 
         self.return_to_menu = DirectButton(
-            text = "Menu.", 
+            text = "Menu", 
             pos = (0, 0, -0.8), 
             frameColor = (1, 0.992, 0.816, 0.5), 
             scale = 0.09, 
@@ -368,6 +363,7 @@ class MyApp(ShowBase):
             self.line_node_path.show()
             self.buttons_container.show()
             self.label_p1.show()
+            self.bg_sqd_container.show()
 
     def create_name_label(self, text, pos):
         display_text = text[:15]
@@ -380,5 +376,42 @@ class MyApp(ShowBase):
         scale = 0.07
         )
 
-app = MyApp()
-app.run()
+    def background_button_frame(self):
+        self.bg_sqd_1 = DirectFrame(
+            frameSize = (-0.15, 0.15, -0.15, 0.15), frameColor = (1, 1, 1, 0.3), 
+            pos = (-0.405, 0, 0.163), parent = self.bg_sqd_container)
+
+        self.bg_sqd_2 = DirectFrame(
+            frameSize = (-0.23, 0.23, -0.15, 0.15), frameColor = (1, 1, 1, 0.3), 
+            pos = (0, 0, 0.163), parent = self.bg_sqd_container)
+
+        self.bg_sqd_3 = DirectFrame(
+            frameSize = (-0.15, 0.15, -0.15, 0.15), frameColor = (1, 1, 1, 0.3), 
+            pos = (0.405, 0, 0.163), parent = self.bg_sqd_container)
+
+        self.bg_sqd_4 = DirectFrame(
+            frameSize = (-0.15, 0.15, -0.23, 0.23), frameColor = (1, 1, 1, 0.3), 
+            pos = (-0.405, 0, -0.245), parent = self.bg_sqd_container)
+
+        self.bg_sqd_5 = DirectFrame(
+            frameSize = (-0.23, 0.23, -0.23, 0.23), frameColor = (1, 1, 1, 0.3), 
+            pos = (0, 0, -0.245), parent = self.bg_sqd_container)
+
+        self.bg_sqd_6 = DirectFrame(
+            frameSize = (-0.15, 0.15, -0.23, 0.23), frameColor = (1, 1, 1, 0.3), 
+            pos = (0.405, 0, -0.245), parent = self.bg_sqd_container)
+
+        self.bg_sqd_7 = DirectFrame(
+            frameSize = (-0.15, 0.15, -0.15, 0.15), frameColor = (1, 1, 1, 0.3), 
+            pos = (-0.405, 0, -0.65), parent = self.bg_sqd_container)
+
+        self.bg_sqd_8 = DirectFrame(
+            frameSize = (-0.23, 0.23, -0.15, 0.15), frameColor = (1, 1, 1, 0.3), 
+            pos = (0, 0, -0.65), parent = self.bg_sqd_container)
+
+        self.bg_sqd_9 = DirectFrame(
+            frameSize = (-0.15, 0.15, -0.15, 0.15), frameColor = (1, 1, 1, 0.3), 
+            pos = (0.405, 0, -0.65), parent = self.bg_sqd_container)
+
+game = Game()
+game.run()
