@@ -105,7 +105,6 @@ class CreateText:
 class Game(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
-        #self.setBackgroundColor(0.5, 0, 0.7) # 0 - 1
         self.disableMouse()
         self.camera.setPos(0, 0, -10)
         self.camera.lookAt(0, 0, 0)
@@ -130,6 +129,10 @@ class Game(ShowBase):
         lines.add_line((0.240, 0.312), (0.240, -0.792), (0, 0, 0, 1), z = 0)   # y right
         self.line_node_path = lines.build()
         self.line_node_path.hide()
+
+        self.bg_sqd_container = self.aspect2d.attachNewNode("frames")
+        self.background_button_frame()
+        self.bg_sqd_container.hide()
 
         self.buttons_container = self.aspect2d.attachNewNode("Grid") # NodePath for buttons.
 
@@ -177,9 +180,6 @@ class Game(ShowBase):
             self.button7 : (2, 0), self.button8 : (2, 1), self.button9 : (2, 2),
         }
 
-        self.bg_sqd_container = self.aspect2d.attachNewNode("frames")
-        self.background_button_frame()
-        self.bg_sqd_container.hide()
         self.loading_menu()
 
     def set_mark(self, button):
@@ -206,10 +206,20 @@ class Game(ShowBase):
             if win_result == 1:
                 self.end_game_screen(winner_player)
                 self.disable_all_buttons()
+                self.review_button = DirectButton(
+                text = "Review", pos = (0, 0, -0.6), frameColor = (1, 0.992, 0.816, 0.5), scale = 0.09, 
+                command = lambda: (self.review_match(win_result), self.return_to_menu.destroy(), 
+                                    self.end_text.removeNode(), self.review_button.destroy())
+                )
                 return
             elif winner_instance.draw() == 2:
                 self.end_game_screen("draw")
                 self.disable_all_buttons()
+                self.review_button = DirectButton(
+                text = "Review", pos = (0, 0, -0.6), frameColor = (1, 0.992, 0.816, 0.5), scale = 0.09, 
+                command = lambda: (self.review_match("draw"), self.return_to_menu.destroy(), 
+                                    self.end_text.removeNode(), self.review_button.destroy())
+                )
                 return
             else:
                 self.turn += 1
@@ -228,18 +238,12 @@ class Game(ShowBase):
         game_tittle_node = CreateText(self.aspect2d)
         self.game_tittle = game_tittle_node.create_text("Tic Tac Toe", (0, 0.7), (0, 0, 0, 1), 0.2)
         self.game_mode_1_button = DirectButton(
-            text = "Two players", 
-            pos = (0, 0, 0.3), 
-            frameColor = (1, 0.992, 0.816, 0.5), 
-            scale = 0.09, 
+            text = "Two players", pos = (0, 0, 0.3), frameColor = (1, 0.992, 0.816, 0.5), scale = 0.09, 
             command = lambda: (self.game_tittle.removeNode(), self.game_mode_1_button.destroy(), 
-                            self.exit_game_button.destroy(), self.start_game_screen()))
+                                self.exit_game_button.destroy(), self.start_game_screen()))
 
         self.exit_game_button = DirectButton(
-            text = "Salir ", 
-            pos = (0, 0, 0), 
-            frameColor = (1, 0.992, 0.816, 0.5), 
-            scale = 0.09, 
+            text = "Salir ", pos = (0, 0, 0), frameColor = (1, 0.992, 0.816, 0.5), scale = 0.09, 
             command = lambda: (self.userExit()))
 
     def start_game_screen(self):
@@ -252,23 +256,13 @@ class Game(ShowBase):
             btn["image"] = None
 
         self.text_entry1 = DirectEntry(
-            initialText = "Player one", 
-            scale = 0.05, 
-            pos = (-0.60, 0, 0.85), 
-            numLines = 1, 
-            focus = 0, 
-            focusInCommand = self.clear_placeholder1,
-            command = self.set_player_1
+            initialText = "Player one", scale = 0.05, pos = (-0.60, 0, 0.85), numLines = 1, focus = 0, 
+            focusInCommand = self.clear_placeholder1, command = self.set_player_1
             )
 
         self.text_entry2 = DirectEntry(
-            initialText = "Player two", 
-            scale = 0.05, 
-            pos = (0.15, 0, 0.85), 
-            numLines = 1, 
-            focus = 0, 
-            focusInCommand = self.clear_placeholder2,
-            command = self.set_player_2
+            initialText = "Player two", scale = 0.05, pos = (0.15, 0, 0.85), numLines = 1, focus = 0, 
+            focusInCommand = self.clear_placeholder2, command = self.set_player_2
         )
 
         self.grid = Grid()
@@ -301,11 +295,22 @@ class Game(ShowBase):
             self.end_text = end_text_node.create_text(end_text, (0,0), (1, 0, 0, 1), 0.1)
 
         self.return_to_menu = DirectButton(
-            text = "Menu", 
-            pos = (0, 0, -0.8), 
-            frameColor = (1, 0.992, 0.816, 0.5), 
-            scale = 0.09, 
-            command = lambda: (self.end_text.removeNode(), self.return_to_menu.destroy(), self.loading_menu()))
+            text = "Menu", pos = (0, 0, -0.8), frameColor = (1, 0.992, 0.816, 0.5), scale = 0.09, 
+            command = lambda: (self.end_text.removeNode(), self.review_button.destroy(), 
+                                self.return_to_menu.destroy(), self.loading_menu()))
+
+    def review_match(self, text):
+        self.buttons_container.show()
+        self.name_one.show()
+        self.name_two.show()
+        self.label_p1.hide()
+        self.label_p2.hide()
+        self.line_node_path.show()
+        self.bg_sqd_container.show()
+
+        self.end_review_button = DirectButton(
+            text = "End review", pos = (0, 0, -0.9), frameColor = (1, 0.992, 0.816, 0.5), scale = 0.09, 
+            command = lambda: (self.end_text.removeNode(), self.end_review_button.destroy(), self.end_game_screen(text)))
 
     def clear_placeholder1(self):
         if self.text_entry1.get() == "Player one":
@@ -360,20 +365,16 @@ class Game(ShowBase):
 
     def show_board(self):
         if self.names_done == 2:
+            self.bg_sqd_container.show()
             self.line_node_path.show()
             self.buttons_container.show()
             self.label_p1.show()
-            self.bg_sqd_container.show()
 
     def create_name_label(self, text, pos):
         display_text = text[:15]
         return DirectLabel(
-        text = display_text, 
-        text_align = TextNode.ACenter,
-        pos = (pos[0], 0, pos[1]), 
-        frameColor = (1, 0, 0, 1),
-        frameSize = None,
-        scale = 0.07
+        text = display_text, text_align = TextNode.ACenter, pos = (pos[0], 0, pos[1]), 
+        frameColor = (1, 0, 0, 1), frameSize = None, scale = 0.07
         )
 
     def background_button_frame(self):
