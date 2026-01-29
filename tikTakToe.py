@@ -136,41 +136,29 @@ class Game(ShowBase):
 
         self.buttons_container = self.aspect2d.attachNewNode("Grid") # NodePath for buttons.
 
-        self.button1 = DirectButton( # top left corner
-            scale = (1.521, 0.01, 1.521), pos = (-0.405, 0, 0.163), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.set_mark(self.button1), parent = self.buttons_container)
+        self.button1 = DirectButton(); self.button2 = DirectButton(); self.button3= DirectButton()
+        self.button4 = DirectButton(); self.button5 = DirectButton(); self.button6 = DirectButton() 
+        self.button7 = DirectButton(); self.button8 = DirectButton(); self.button9 = DirectButton()
 
-        self.button2 = DirectButton( #  top center
-            scale = (2.3, 0.01, 1.521), pos = (0, 0, 0.163), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.set_mark(self.button2), parent = self.buttons_container)
+        self.buttons = [self.button1, self.button2, self.button3, self.button4, self.button5, 
+                        self.button6, self.button7, self.button8, self.button9]
 
-        self.button3 = DirectButton( # top right corner
-            scale = (1.521, 0.01, 1.521), pos = (0.405, 0, 0.163), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.set_mark(self.button3), parent = self.buttons_container)
+        self.buttons_positions = {
+            1 : (-0.405, 0, 0.163), 2 : (0, 0, 0.163), 3 : (0.405, 0, 0.163), 
+            4 : (-0.405, 0, -0.245), 5 : (0, 0, -0.245), 6 : (0.405, 0, -0.245), 
+            7 : (-0.405, 0, -0.65), 8 : (0, 0, -0.65), 9 : (0.405, 0, -0.65)}
 
-        self.button4 = DirectButton( # left center
-            scale = (1.521, 0.01, 2.3), pos = (-0.405, 0, -0.245), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.set_mark(self.button4), parent = self.buttons_container)
+        self. buttons_scales = {
+            1 :(1.521, 0.01, 1.521), 2 : (2.3, 0.01, 1.521), 3 : (1.521, 0.01, 1.521), 
+            4 : (1.521, 0.01, 2.3), 5 : (2.3, 0.01, 2.3), 6 : (1.521, 0.01, 2.3), 
+            7 : (1.521, 0.01, 1.521), 8 : (2.3, 0.01, 1.521), 9 :(1.521, 0.01, 1.521)}
 
-        self.button5 = DirectButton( # center
-            scale = (2.3, 0.01, 2.3), pos = (0, 0, -0.245), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.set_mark(self.button5), parent = self.buttons_container)
-
-        self.button6 = DirectButton( # right center
-            scale = (1.521, 0.01, 2.3), pos = (0.405, 0, -0.245), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.set_mark(self.button6), parent = self.buttons_container)
-
-        self.button7 = DirectButton( # bottom left corner
-            scale = (1.521, 0.01, 1.521), pos = (-0.405, 0, -0.65), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.set_mark(self.button7), parent = self.buttons_container)
-
-        self.button8 = DirectButton( #  bottom center
-            scale = (2.3, 0.01, 1.521), pos = (0, 0, -0.65), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.set_mark(self.button8), parent = self.buttons_container)
-
-        self.button9 = DirectButton( # bottom right corner
-            scale = (1.521, 0.01, 1.521), pos = (0.405, 0, -0.65), frameColor = (0, 0, 0, 0), 
-            command = lambda: self.set_mark(self.button9), parent = self.buttons_container)
+        for indx, bttn in enumerate(self.buttons):
+            bttn.setScale(self.buttons_scales[indx + 1][0], self.buttons_scales[indx + 1][1], self.buttons_scales[indx + 1][2])
+            bttn.setPos(self.buttons_positions[indx + 1][0], self.buttons_positions[indx + 1][1], self.buttons_positions[indx + 1][2])
+            bttn["frameColor"] = (0, 0, 0, 0)
+            bttn["command"] = lambda indx = indx: self.set_mark(self.buttons[indx])
+            bttn.reparentTo(self.buttons_container)
 
         self.buttons_container.hide()
 
@@ -208,7 +196,7 @@ class Game(ShowBase):
                 self.disable_all_buttons()
                 self.review_button = DirectButton(
                 text = "Review", pos = (0, 0, -0.6), frameColor = (1, 0.992, 0.816, 0.5), scale = 0.09, 
-                command = lambda: (self.review_match(win_result), self.return_to_menu.destroy(), 
+                command = lambda: (self.review_match(winner_player), self.return_to_menu.destroy(), 
                                     self.end_text.removeNode(), self.review_button.destroy())
                 )
                 return
