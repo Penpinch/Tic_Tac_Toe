@@ -366,41 +366,28 @@ class Game(ShowBase):
         )
 
     def background_button_frame(self):
-        self.bg_sqd_1 = DirectFrame(
-            frameSize = (-0.15, 0.15, -0.15, 0.15), frameColor = (1, 1, 1, 0.3), 
-            pos = (-0.405, 0, 0.163), parent = self.bg_sqd_container)
+        self.bg_sqd1 = DirectFrame(); self.bg_sqd2 = DirectFrame(); self.bg_sqd3 = DirectFrame()
+        self.bg_sqd4 = DirectFrame(); self.bg_sqd5 = DirectFrame(); self.bg_sqd6 = DirectFrame()
+        self.bg_sqd7 = DirectFrame(); self.bg_sqd8 = DirectFrame(); self.bg_sqd9 = DirectFrame()
 
-        self.bg_sqd_2 = DirectFrame(
-            frameSize = (-0.23, 0.23, -0.15, 0.15), frameColor = (1, 1, 1, 0.3), 
-            pos = (0, 0, 0.163), parent = self.bg_sqd_container)
+        self.frames_ = [self.bg_sqd1, self.bg_sqd2, self.bg_sqd3, self.bg_sqd4, self.bg_sqd5,
+                        self.bg_sqd6, self.bg_sqd7, self.bg_sqd8, self.bg_sqd9]
 
-        self.bg_sqd_3 = DirectFrame(
-            frameSize = (-0.15, 0.15, -0.15, 0.15), frameColor = (1, 1, 1, 0.3), 
-            pos = (0.405, 0, 0.163), parent = self.bg_sqd_container)
+        self.frames_size = {
+            1 : (-0.15, 0.15, -0.15, 0.15), 2 : (-0.23, 0.23, -0.15, 0.15), 3 : (-0.15, 0.15, -0.15, 0.15),
+            4 : (-0.15, 0.15, -0.23, 0.23), 5 : (-0.23, 0.23, -0.23, 0.23), 6 : (-0.15, 0.15, -0.23, 0.23), 
+            7 : (-0.15, 0.15, -0.15, 0.15), 8 : (-0.23, 0.23, -0.15, 0.15), 9 : (-0.15, 0.15, -0.15, 0.15)}
 
-        self.bg_sqd_4 = DirectFrame(
-            frameSize = (-0.15, 0.15, -0.23, 0.23), frameColor = (1, 1, 1, 0.3), 
-            pos = (-0.405, 0, -0.245), parent = self.bg_sqd_container)
+        self.frames_positions = {
+            1 : (-0.405, 0, 0.163), 2 : (0, 0, 0.163), 3 : (0.405, 0, 0.163), 
+            4 : (-0.405, 0, -0.245), 5 : (0, 0, -0.245), 6  : (0.405, 0, -0.245), 
+            7 : (-0.405, 0, -0.65), 8 : (0, 0, -0.65), 9 : (0.405, 0, -0.65)}
 
-        self.bg_sqd_5 = DirectFrame(
-            frameSize = (-0.23, 0.23, -0.23, 0.23), frameColor = (1, 1, 1, 0.3), 
-            pos = (0, 0, -0.245), parent = self.bg_sqd_container)
-
-        self.bg_sqd_6 = DirectFrame(
-            frameSize = (-0.15, 0.15, -0.23, 0.23), frameColor = (1, 1, 1, 0.3), 
-            pos = (0.405, 0, -0.245), parent = self.bg_sqd_container)
-
-        self.bg_sqd_7 = DirectFrame(
-            frameSize = (-0.15, 0.15, -0.15, 0.15), frameColor = (1, 1, 1, 0.3), 
-            pos = (-0.405, 0, -0.65), parent = self.bg_sqd_container)
-
-        self.bg_sqd_8 = DirectFrame(
-            frameSize = (-0.23, 0.23, -0.15, 0.15), frameColor = (1, 1, 1, 0.3), 
-            pos = (0, 0, -0.65), parent = self.bg_sqd_container)
-
-        self.bg_sqd_9 = DirectFrame(
-            frameSize = (-0.15, 0.15, -0.15, 0.15), frameColor = (1, 1, 1, 0.3), 
-            pos = (0.405, 0, -0.65), parent = self.bg_sqd_container)
+        for inx, frms in enumerate(self.frames_):
+            frms["frameSize"] = (self.frames_size[inx + 1][0], self.frames_size[inx + 1][1], self.frames_size[inx + 1][2], self.frames_size[inx + 1][3])
+            frms["frameColor"] = (1, 1, 1, 0.3)
+            frms.setPos((self.frames_positions[inx + 1][0], self.frames_positions[inx + 1][1], self.frames_positions[inx + 1][2]))
+            frms.reparentTo(self.bg_sqd_container)
 
 game = Game()
 game.run()
