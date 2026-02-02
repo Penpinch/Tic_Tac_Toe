@@ -31,48 +31,17 @@ class Winner():
         self.grid = grid
         self.player = player
 
-    def draw(self): # Draw case.
-        mark_counter = 0
-        for i in range(len(self.grid.grid)):
-            for j in range(len(self.grid.grid[i])):
-                if self.grid.grid[i][j] != 0:
-                    mark_counter += 1
-        if mark_counter == 9:
-            return 2
-        return 0
+    def verify_winner(self, progress: dict, last_move: tuple):
+        row = last_move[0]
+        column = last_move[1]
 
-    def verify_winner(self): # Check for every win case.
-        mark_counter = 0
+        if self.player.mark == 1: dict_key = "player_1"
+        else: dict_key = "player_2"
 
-        for a in range(len(self.grid.grid)):
-            for b in range(len(self.grid.grid[a])):
-                if self.grid.grid[a][b] == self.player.mark:
-                    mark_counter += 1
-            if mark_counter == 3:
-                return 1, self.player.name, self.player.mark
-            mark_counter = 0
-
-        for c in range(len(self.grid.grid[0])):
-            mark_counter = 0
-            for d in range(len(self.grid.grid)):
-                if self.grid.grid[d][c] == self.player.mark:
-                    mark_counter += 1
-            if mark_counter == 3:
-                return 1, self.player.name, self.player.mark
-            mark_counter = 0
-
-        diagonal_1 = 0; diagonal_2 = 0
-        for e in range(len(self.grid.grid)):
-            if self.grid.grid[e][e] == self.player.mark:
-                diagonal_1 += 1
-            if self.grid.grid[e][len(self.grid.grid) - 1 - e] == self.player.mark:
-                diagonal_2 += 1
-        if diagonal_1 == 3:
-            return 1, self.player.name, self.player.mark
-        if diagonal_2 == 3:
-            return 1, self.player.name, self.player.mark
-
-        return 0, self.player.name, self.player.mark
+        progress[dict_key][row] += 1 
+        progress[dict_key][column + 3] += 1 
+        if row == column: progress[dict_key][6] += 1 
+        if row + column == 2: progress[dict_key][7] += 1 
 
 class Line3D:
     def __init__(self, parent):
@@ -168,6 +137,10 @@ class Game(ShowBase):
             self.button7 : (2, 0), self.button8 : (2, 1), self.button9 : (2, 2),
         }
 
+        self.win_progress_state = {# 0-2 rows, 3-5 columns, 6 diagonal 1, 7 diagonal 2
+            "player_1" : [0, 0, 0, 0, 0, 0, 0, 0], "player_2" : [0, 0, 0, 0, 0, 0, 0, 0]
+        }
+
         self.loading_menu()
 
     def set_mark(self, button):
@@ -176,31 +149,39 @@ class Game(ShowBase):
 
             if self.grid.is_free_cell(btn_coords) == True:
                 self.grid.chosen_cell(btn_coords, self.current_player.mark)
-            else: 
-                return
+            else: return
 
             button["state"] = "disabled"
-            if self.current_player.mark == 1:
-                button["image"] = "o_sign.png"
-            else:
-                button["image"] = "x_sign.png"
+            if self.current_player.mark == 1: button["image"] = "o_sign.png"
+            else: button["image"] = "x_sign.png"
+
             button["image_scale"] = 0.1
             button.setTransparency(TransparencyAttrib.M_alpha)
             button.show()
 
             winner_instance = Winner(self.grid, self.current_player)
-            win_result, winner_player, winner_mark = winner_instance.verify_winner()
+            winner_instance.verify_winner(self.win_progress_state, btn_coords)
 
-            if win_result == 1:
-                self.end_game_screen(winner_player)
+            if self.current_player.mark == 1: key_ = "player_1"
+            else: key_ = "player_2"
+
+            there_is_winner = False
+            for cont in self.win_progress_state[key_]:
+                if cont == 3: there_is_winner = True
+
+            if there_is_winner:
+                self.end_game_screen(self.current_player.name)
                 self.disable_all_buttons()
                 self.review_button = DirectButton(
                 text = "Review", pos = (0, 0, -0.6), frameColor = (1, 0.992, 0.816, 0.5), scale = 0.09, 
-                command = lambda: (self.review_match(winner_player), self.return_to_menu.destroy(), 
+                command = lambda: (self.review_match(self.current_player.name), self.return_to_menu.destroy(), 
                                     self.end_text.removeNode(), self.review_button.destroy())
                 )
                 return
-            elif winner_instance.draw() == 2:
+
+            self.free_calls -= 1
+
+            if self.free_calls == 0:
                 self.end_game_screen("draw")
                 self.disable_all_buttons()
                 self.review_button = DirectButton(
@@ -239,6 +220,9 @@ class Game(ShowBase):
         self.player2 = Player("", 2)
         self.current_player = self.player1
         self.names_done = 0
+        self.free_calls = 9
+        self.win_progress_state["player_1"] = [0] * 8
+        self.win_progress_state["player_2"] = [0] * 8
 
         for btn in self.button_to_coordinates.keys():
             btn["image"] = None
@@ -301,12 +285,10 @@ class Game(ShowBase):
             command = lambda: (self.end_text.removeNode(), self.end_review_button.destroy(), self.end_game_screen(text)))
 
     def clear_placeholder1(self):
-        if self.text_entry1.get() == "Player one":
-            self.text_entry1.enterText("")
+        if self.text_entry1.get() == "Player one": self.text_entry1.enterText("")
 
     def clear_placeholder2(self):
-        if self.text_entry2.get() == "Player two":
-            self.text_entry2.enterText("")
+        if self.text_entry2.get() == "Player two": self.text_entry2.enterText("")
 
     def disable_all_buttons(self):
         for btn in self.button_to_coordinates.keys():
@@ -317,8 +299,8 @@ class Game(ShowBase):
             btn["state"] = "normal"
 
     def set_player_1(self, text):
-        if text.strip() == "":
-            text = "Player one"
+        if text.strip() == "": text = "Player one"
+
         self.player1 = Player(text, 1)
         self.label_p1["text"] = text
         bounds_p1 = self.label_p1.getBounds()
@@ -335,8 +317,8 @@ class Game(ShowBase):
         self.show_board()
 
     def set_player_2(self, text):
-        if text.strip() == "":
-            text = "Player two"
+        if text.strip() == "": text = "Player two"
+
         self.player2 = Player(text, 2)
         self.label_p2["text"] = text
         bounds_p2 = self.label_p2.getBounds()
